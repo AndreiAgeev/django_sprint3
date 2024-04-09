@@ -9,7 +9,7 @@ __pycache__/
 # Distribution / packaging
 backups/
 templates/
-blogicum/static_dev
+blogicum/static_dev/
 tests/
 .Python
 build/
