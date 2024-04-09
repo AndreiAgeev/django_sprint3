@@ -6,12 +6,11 @@ from blog.models import Post, Category
 
 
 POST_PER_PAGE = 5
+join_parameters = ('location', 'author', 'category')
 
 
-def get_posts_qs(posts, **filters):
-    return posts.select_related(
-        'location', 'author', 'category'
-    ).filter(
+def get_posts_qs(posts, *joins, **filters):
+    return posts.select_related(*joins).filter(
         pub_date__lte=timezone.now(),
         is_published=True,
         **filters
@@ -21,7 +20,9 @@ def get_posts_qs(posts, **filters):
 def index(request):
     template_name = 'blog/index.html'
     posts = get_posts_qs(
-        Post.objects, **{'category__is_published': True}
+        Post.objects,
+        *join_parameters,
+        **{'category__is_published': True}
     )[:POST_PER_PAGE]
     context = {'posts': posts}
     return render(request, template_name, context)
@@ -49,7 +50,9 @@ def category_posts(request, category_slug):
         ),
         slug=category_slug)
     posts = get_posts_qs(
-        Post.objects, **{'category__slug': category_slug}
+        Post.objects,
+        *join_parameters,
+        **{'category__slug': category_slug}
     )
     context = {
         'category': category_data,
