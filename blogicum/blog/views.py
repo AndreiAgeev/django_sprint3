@@ -1,19 +1,29 @@
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+
 from blog.models import Post, Category
-import datetime
+
+
+POST_PER_PAGE = 5
+
+
+def get_posts_qs(posts, **filters):
+    return posts.select_related(
+        'location', 'author', 'category'
+    ).filter(
+        pub_date__lte=timezone.now(),
+        is_published=True,
+        **filters
+    )
 
 
 def index(request):
     template_name = 'blog/index.html'
-    post_list = Post.objects.select_related(
-        'location', 'author', 'category'
-    ).filter(
-        pub_date__lte=datetime.datetime.now(),
-        is_published=True,
-        category__is_published=True
-    )[0:5]
-    context = {'post_list': post_list}
+    posts = get_posts_qs(
+        Post.objects, **{'category__is_published': True}
+    )[:POST_PER_PAGE]
+    context = {'posts': posts}
     return render(request, template_name, context)
 
 
@@ -21,7 +31,7 @@ def post_detail(request, post_id):
     template_name = 'blog/detail.html'
     post = get_object_or_404(
         Post.objects.exclude(
-            Q(pub_date__gte=datetime.datetime.now())
+            Q(pub_date__gte=timezone.now())
             | Q(is_published=False)
             | Q(category__is_published=False)
         ),
@@ -38,15 +48,11 @@ def category_posts(request, category_slug):
             is_published=True
         ),
         slug=category_slug)
-    post_list = Post.objects.select_related(
-        'location', 'author', 'category'
-    ).filter(
-        category__slug=category_slug,
-        is_published=True,
-        pub_date__lte=datetime.datetime.now()
+    posts = get_posts_qs(
+        Post.objects, **{'category__slug': category_slug}
     )
     context = {
         'category': category_data,
-        'post_list': post_list
+        'posts': posts
     }
     return render(request, template_name, context)
