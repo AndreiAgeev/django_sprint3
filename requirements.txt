@@ -1,7 +1,7 @@
 asgiref==3.8.1
 attrs==23.2.0
 colorama==0.4.6
-Django==3.2.16
+Django==3.2.25
 django_debug_toolbar==3.8.1
 Faker==12.0.1
 flake8==5.0.4
